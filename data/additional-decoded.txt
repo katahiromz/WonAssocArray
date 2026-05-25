@@ -1,0 +1,42 @@
+// @implemented
+HRESULT CEnumAssocElems::Next(
+    ULONG celt,
+    IAssociationElementOld *pElement,
+    ULONG *pceltFetched)
+{
+    ULONG cGot = 0;
+    ZeroMemory(pElement, 4 * celt);
+    if (celt)
+    {
+        do
+        {
+            if (!_Next(pElement))
+                break;
+            ++m_iItem;
+            ++cGot;
+            ++pElement;
+        } while (cGot < celt);
+    }
+
+    if (pceltFetched)
+        *pceltFetched = cGot;
+    return (celt == cGot) ? S_OK : S_FALSE;
+}
+
+// @implemented
+STDMETHODIMP CEnumAssocElems::Skip(ULONG celt)
+{
+    return E_NOTIMPL;
+}
+
+// @implemented
+STDMETHODIMP CEnumAssocElems::Reset()
+{
+    return E_NOTIMPL;
+}
+
+// @implemented
+STDMETHODIMP CEnumAssocElems::Clone(IEnumAssociationElements **ppNew)
+{
+    return E_NOTIMPL;
+}
