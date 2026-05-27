@@ -1,3 +1,7 @@
+#include <windows.h>
+#include <shlobj.h>
+#include "shstr.h"
+
 // @implemented 
 HRESULT WINAPI
 AssocQueryKeyW(
@@ -68,103 +72,10 @@ HRESULT WINAPI AssocQueryStringByKeyW(
     return hr;
 }
 
-class CWideString
-{
-protected:
-    LPWSTR m_pszWide;
-    INT m_cchWide;
-    WCHAR m_szBuff[128];
-
-    CWideString() : m_pszWide(m_szBuff), m_cchWide(1)
-    {
-        m_szBuff[0] = UNICODE_NULL;
-    }
-
-    ~CWideString()
-    {
-        Reset();
-    }
-
-    operator LPCWSTR() const { return m_pszWide; }
-
-    void Reset()
-    {
-        if (m_pszWide != m_szBuff)
-            CoTaskMemFree(m_pszWide);
-        m_pszWide = m_szBuff;
-        m_szBuff[0] = UNICODE_NULL;
-        m_cchWide = 1;
-    }
-
-    INT GetLength() const
-    {
-        return m_cchWide - 1;
-    }
-
-    INT GetSize() const
-    {
-        return m_cchWide;
-    }
-
-    HRESULT SetLength(INT cchLength)
-    {
-        return SetSize(cchLength + 1);
-    }
-
-    HRESULT SetSize(INT cchWide)
-    {
-        if (cchWide <= _countof(m_szBuff))
-        {
-            m_cchWide = cchWide;
-            return S_OK;
-        }
-
-        LPWSTR pszWide = CoTaskMemAlloc(cchWide * sizeof(WCHAR));
-        if (!pszWide)
-            return E_OUTOFMEMORY;
-
-        CoTaskMemFree(m_pszWide);
-        m_pszWide = pszWide;
-        m_pszWide[0] = m_szBuff[0] = UNICODE_NULL;
-        m_cchWide = cchWide;
-        return S_OK;
-    }
-
-    HRESULT SetStrA(LPCSTR pszAnsi, INT cchAnsi = -1)
-    {
-        Reset();
-
-        if (!pszAnsi || !cchAnsi)
-            return S_FALSE;
-
-        if (cchAnsi == -1)
-            cchAnsi = lstrlenA(pszAnsi) + 1;
-
-        if (!cchAnsi)
-            return S_FALSE;
-
-        INT cchWide = MultiByteToWideChar(CP_ACP, 0, pszAnsi, cchAnsi, NULL, 0);
-        if (!cchWide)
-            return S_FALSE;
-
-        HRESULT hr = SetSize(cchWide);
-        if (FAILED(hr))
-            return hr;
-
-        if (!MultiByteToWideChar(CP_ACP, 0, pszAnsi, cchAnsi, m_pszWide, m_cchWide))
-        {
-            Reset();
-            return S_FALSE;
-        }
-
-        return S_OK;
-    }
-};
-
 HRESULT WINAPI AssocQueryKeyA(ASSOCF flags, ASSOCKEY key, LPCSTR pszAssoc, LPCSTR pszExtra, HKEY *phkeyOut)
 {
-    CWideString pszAssocW, pszExtraW;
-    if (FAILED(pszAssocW.SetStrA(pszAssoc)) || FAILED(pszExtraW.SetStrA(pszExtra)))
+    CShStrW pszAssocW, pszExtraW;
+    if (FAILED(pszAssocW.SetStr(pszAssoc)) || FAILED(pszExtraW.SetStr(pszExtra)))
         return E_OUTOFMEMORY;
     return AssocQueryKeyW(flags, key, pszAssocW, pszExtraW, phkeyOut);
 }
@@ -180,8 +91,8 @@ HRESULT WINAPI AssocQueryStringA(
     if (!pcchOut)
         return E_INVALIDARG;
 
-    CWideString pszAssocW, pszExtraW;
-    if (FAILED(pszAssocW.SetStrA(pszAssoc)) || FAILED(pszExtraW.SetStrA(pszExtra)))
+    CShStrW pszAssocW, pszExtraW;
+    if (FAILED(pszAssocW.SetStr(pszAssoc)) || FAILED(pszExtraW.SetStr(pszExtra)))
         return E_OUTOFMEMORY;
 
     DWORD cchOut = IS_INTRESOURCE(pcchOut) ? PtrToUlong(pcchOut) : *pcchOut;
@@ -189,7 +100,7 @@ HRESULT WINAPI AssocQueryStringA(
     HRESULT hr;
     LPWSTR pszOutW = NULL;
     INT cchOutW = 0;
-    CWideString pszOutBuffW
+    CShStrW pszOutBuffW
     if (pszOut)
     {
         hr = pszOutBuffW.SetSize(cchOut);
@@ -222,7 +133,7 @@ HRESULT WINAPI AssocQueryStringByKeyA(
         return E_INVALIDARG;
 
     HRESULT hr = E_OUTOFMEMORY;
-    CWideString pszExtraW;
+    CShStrW pszExtraW;
     if (FAILED(pszExtraW.SetStr(pszExtra)))
         return E_OUTOFMEMORY;
 
@@ -231,7 +142,7 @@ HRESULT WINAPI AssocQueryStringByKeyA(
     HRESULT hr;
     LPWSTR pszOutW = NULL;
     INT cchOutW = 0;
-    CWideString pszOutBuffW;
+    CShStrW pszOutBuffW;
     if (pszOut)
     {
         hr = pszOutBuffW.SetSize(cchOut);
