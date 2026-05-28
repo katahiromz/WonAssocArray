@@ -733,7 +733,7 @@ STDMETHODIMP CAssocArray::GetString(
     HRESULT hr = QueryString(m_dwFilter & dwMask, entry.query, pszKey, &pszResult);
     if (SUCCEEDED(hr))
     {
-        hr = _CopyOut(flags & 0x20, pszResult, pszOut, pcchOut);
+        hr = _CopyOut((flags & ASSOCF_NOTRUNCATE), pszResult, pszOut, pcchOut);
         CoTaskMemFree(pszResult);
     }
 
