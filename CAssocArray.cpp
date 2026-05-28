@@ -126,6 +126,31 @@ static HRESULT CALLBACK _QueryObject(
  * CEnumAssocElems - implementation of IEnumAssociationElements
  */
 
+STDMETHODIMP CEnumAssocElems::QueryInterface(REFIID riid, PVOID *ppv)
+{
+    if (riid == IID_IEnumAssociationElements)
+    {
+        *ppv = this;
+        return S_OK;
+    }
+    return E_NOINTERFACE;
+}
+
+STDMETHODIMP_(ULONG) CEnumAssocElems::AddRef()
+{
+    return ++m_cRefs;
+}
+
+STDMETHODIMP_(ULONG) CEnumAssocElems::Release()
+{
+    if (!--m_cRefs)
+    {
+        delete this;
+        return 0;
+    }
+    return m_cRefs;
+}
+
 // @implemented
 HRESULT CEnumAssocElems::Next(
     ULONG celt,
@@ -194,6 +219,41 @@ CAssocArray::CAssocArray()
 CAssocArray::~CAssocArray()
 {
     _Reset();
+}
+
+STDMETHODIMP CAssocArray::QueryInterface(REFIID riid, PVOID *ppv)
+{
+    if (riid == IID_IAssociationArrayOld)
+    {
+        *ppv = static_cast<IAssociationArrayOld*>)this);
+        return S_OK;
+    }
+    if (riid == IID_IID_IAssociationArrayInitialize)
+    {
+        *ppv = static_cast<IID_IAssociationArrayInitialize*>)this);
+        return S_OK;
+    }
+    if (riid == IID_IQueryAssociations)
+    {
+        *ppv = static_cast<IQueryAssociations*>)this);
+        return S_OK;
+    }
+    return E_NOINTERFACE;
+}
+
+STDMETHODIMP_(ULONG) CAssocArray::AddRef()
+{
+    return ++m_cRefs;
+}
+
+STDMETHODIMP_(ULONG) CAssocArray::Release()
+{
+    if (!--m_cRefs)
+    {
+        delete this;
+        return 0;
+    }
+    return m_cRefs;
 }
 
 /**
