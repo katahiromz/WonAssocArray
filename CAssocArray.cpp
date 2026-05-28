@@ -19,6 +19,36 @@ inline BOOL _IsSameVerb(PCWSTR psz1, PCWSTR psz2)
     return StrCmpIW(psz1, psz2) == 0;
 }
 
+static HRESULT
+_CopyOut(BOOL bStrict, LPCWSTR lpString, PWSTR pszDest, PDWORD cchDest)
+{
+    INT cch = IS_INTRESOURCE(cchDest) ? PtrToUlong(cchDest) : *cchDest;
+    const UINT cchString = (UINT)lstrlenW(lpString);
+
+    HRESULT hr;
+    if (pszDest)
+    {
+        if (bStrict && cch <= cchString)
+        {
+            hr = E_POINTER;
+        }
+        else
+        {
+            StrCpyNW(pszDest, lpString, cch);
+            hr = S_OK;
+        }
+    }
+    else
+    {
+        hr = S_FALSE;
+    }
+
+    if (!IS_INTRESOURCE(cchDest))
+        *cchDest = SUCCEEDED(hr) ? (lstrlenW(pszDest) + 1) : (cchString + 1);
+
+    return hr;
+}
+
 /*****************************************************************************
  * _Query* helper thunks
  *
