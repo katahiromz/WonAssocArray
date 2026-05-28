@@ -19,6 +19,16 @@ inline BOOL _IsSameVerb(PCWSTR psz1, PCWSTR psz2)
     return StrCmpIW(psz1, psz2) == 0;
 }
 
+static DWORD _MaskFromFlags(DWORD dwFlags)
+{
+    DWORD mask = 0xFFFF;
+    if (dwFlags & ASSOCF_IGNOREBASECLASS)
+        mask = 6;
+    if (dwFlags & ASSOCF_NOUSERSETTINGS)
+        mask &= ~2u;
+    return mask;
+}
+
 static HRESULT
 _CopyOut(BOOL bStrict, LPCWSTR lpString, PWSTR pszDest, PDWORD cchDest)
 {
